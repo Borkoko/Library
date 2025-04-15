@@ -1,0 +1,101 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0;
+}
+
+#header {
+  background-color: #4682B4;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+#nav {
+  margin-top: 10px;
+}
+
+#nav a {
+  color: white;
+  text-decoration: none;
+  margin: 0 10px;
+  padding: 5px;
+}
+
+#nav a:hover {
+  background-color: #5f9dd0;
+}
+
+.active {
+  font-weight: bold;
+}
+
+#main-content {
+  width: 80%;
+  margin: 20px auto;
+  background-color: white;
+  padding: 20px;
+  border: 1px solid #ddd;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+h1, h2, h3 {
+  color: #333;
+}
+
+input, select, button {
+  margin: 5px;
+  padding: 5px;
+}
+
+button {
+  background-color: #4682B4;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #5f9dd0;
+}
+
+form div {
+  margin-bottom: 10px;
+}
+
+#footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  margin-top: 20px;
+}
+
+/* Book display */
+.book-item {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+.loan-item {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+/* Error message */
+.error {
+  color: red;
+}
+
+/* Success message */
+.success {
+  color: green;
+}

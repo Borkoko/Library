@@ -75,7 +75,6 @@ form div {
   margin-top: 20px;
 }
 
-/* Book display */
 .book-item {
   border: 1px solid #ddd;
   padding: 10px;
@@ -90,12 +89,112 @@ form div {
   background-color: #f9f9f9;
 }
 
-/* Error message */
 .error {
   color: red;
 }
 
-/* Success message */
 .success {
   color: green;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+}
+
+.close-modal {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+  color: black;
+  text-decoration: none;
+}
+
+.user-item {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+.user-actions {
+  margin-top: 10px;
+}
+
+.user-actions button {
+  margin-right: 5px;
+}
+
+.admin-badge {
+  background-color: #4682B4;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  margin-left: 5px;
+}
+
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.confirm-dialog {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.confirm-dialog h3 {
+  margin-top: 0;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.confirm-actions button {
+  margin-left: 10px;
+}
+
+button.danger {
+  background-color: #d9534f;
+}
+
+button.cancel {
+  background-color: #6c757d;
 }

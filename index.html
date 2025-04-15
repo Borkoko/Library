@@ -14,6 +14,7 @@
             <a href="#" id="books-link">Books</a>
             <a href="#" id="my-loans-link" class="auth-required" style="display: none;">My Loans</a>
             <a href="#" id="manage-books-link" class="admin-only" style="display: none;">Manage Books</a>
+            <a href="#" id="manage-users-link" class="admin-only" style="display: none;">Manage Users</a>
             <a href="#" id="login-link" class="auth-not-required">Login</a>
             <a href="#" id="register-link" class="auth-not-required">Register</a>
             <a href="#" id="logout-link" class="auth-required" style="display: none;">Logout</a>
@@ -125,6 +126,63 @@
             
             <div id="admin-books-container">
                 <p>Loading books...</p>
+            </div>
+        </div>
+
+        <div id="manage-users-section" class="section admin-only" style="display: none;">
+            <h2>Manage Users</h2>
+            
+            <div id="users-container">
+                <p>Loading users...</p>
+            </div>
+            
+            <div id="edit-user-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3>Edit User</h3>
+                    <form id="edit-user-form">
+                        <input type="hidden" id="edit-user-id">
+                        <div>
+                            <label for="edit-user-name">Name:</label>
+                            <input type="text" id="edit-user-name" required>
+                        </div>
+                        <div>
+                            <label for="edit-user-email">Email:</label>
+                            <input type="email" id="edit-user-email" required>
+                        </div>
+                        <div>
+                            <label for="edit-user-role">Role:</label>
+                            <select id="edit-user-role" required>
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="submit">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="reset-password-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3>Reset User Password</h3>
+                    <form id="reset-password-form">
+                        <input type="hidden" id="reset-password-user-id">
+                        <div>
+                            <label for="new-password">New Password:</label>
+                            <input type="password" id="new-password" required minlength="6">
+                        </div>
+                        <div>
+                            <label for="confirm-new-password">Confirm New Password:</label>
+                            <input type="password" id="confirm-new-password" required minlength="6">
+                        </div>
+                        <div>
+                            <button type="submit">Reset Password</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

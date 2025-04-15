@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
     showSection('manage-books-section');
     loadAdminBooks();
   });
+  document.getElementById('manage-users-link').addEventListener('click', function() {
+    showSection('manage-users-section');
+    loadUsers();
+  });
   document.getElementById('login-link').addEventListener('click', showSection.bind(null, 'login-section'));
   document.getElementById('register-link').addEventListener('click', showSection.bind(null, 'register-section'));
   document.getElementById('logout-link').addEventListener('click', logoutUser);
@@ -39,6 +43,19 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.getElementById('filter-availability').addEventListener('change', function() {
     loadBooks(document.getElementById('search-input').value);
+  });
+  
+  document.getElementById('edit-user-form').addEventListener('submit', saveUserChanges);
+  document.getElementById('reset-password-form').addEventListener('submit', resetUserPassword);
+  
+  document.querySelectorAll('.close-modal').forEach(button => {
+    button.addEventListener('click', closeAllModals);
+  });
+  
+  window.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal')) {
+      closeAllModals();
+    }
   });
 });
 
@@ -439,5 +456,203 @@ function deleteBook(bookId) {
   .catch(error => {
     console.error('Error deleting book:', error);
     alert('Error deleting book. Please try again later.');
+  });
+}
+
+function loadUsers() {
+  const usersContainer = document.getElementById('users-container');
+  usersContainer.innerHTML = '<p>Loading users...</p>';
+  
+  fetch('/api/users')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        displayUsers(data.users, usersContainer);
+      } else {
+        usersContainer.innerHTML = '<p class="error">Error loading users: ' + (data.message || 'Unknown error') + '</p>';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading users:', error);
+      usersContainer.innerHTML = '<p class="error">Error loading users. Please try again later.</p>';
+    });
+}
+
+function displayUsers(users, container) {
+  if (users.length === 0) {
+    container.innerHTML = '<p>No users found.</p>';
+    return;
+  }
+  
+  let html = '';
+  
+  users.forEach(user => {
+    const isCurrentUser = currentUser && user.user_id === currentUser.id;
+    
+    html += `
+      <div class="user-item" data-id="${user.user_id}">
+        <h3>${user.name} ${user.role === 'admin' ? '<span class="admin-badge">Admin</span>' : ''}</h3>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Role:</strong> ${user.role}</p>
+        <div class="user-actions">
+          <button onclick="editUser(${user.user_id})">Edit</button>
+          <button onclick="resetPassword(${user.user_id})">Reset Password</button>
+          ${!isCurrentUser ? `<button class="danger" onclick="confirmDeleteUser(${user.user_id})">Delete</button>` : ''}
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+function editUser(userId) {
+  fetch(`/api/users/${userId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const user = data.user;
+        
+        document.getElementById('edit-user-id').value = user.user_id;
+        document.getElementById('edit-user-name').value = user.name;
+        document.getElementById('edit-user-email').value = user.email;
+        document.getElementById('edit-user-role').value = user.role;
+        
+        document.getElementById('edit-user-modal').style.display = 'block';
+      } else {
+        alert('Error: ' + (data.message || 'Failed to load user details'));
+      }
+    })
+    .catch(error => {
+      console.error('Error loading user details:', error);
+      alert('Error loading user details. Please try again later.');
+    });
+}
+
+function saveUserChanges(event) {
+  event.preventDefault();
+  
+  const userId = document.getElementById('edit-user-id').value;
+  const name = document.getElementById('edit-user-name').value;
+  const email = document.getElementById('edit-user-email').value;
+  const role = document.getElementById('edit-user-role').value;
+  
+  fetch(`/api/users/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name, email, role })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      closeAllModals();
+      loadUsers();
+      
+      if (currentUser && currentUser.id === parseInt(userId)) {
+        currentUser.name = name;
+        currentUser.email = email;
+        currentUser.role = role;
+        localStorage.setItem('user', JSON.stringify(currentUser));
+      }
+      
+      alert('User updated successfully!');
+    } else {
+      alert('Error: ' + (data.message || 'Failed to update user'));
+    }
+  })
+  .catch(error => {
+    console.error('Error updating user:', error);
+    alert('Error updating user. Please try again later.');
+  });
+}
+
+function resetPassword(userId) {
+  document.getElementById('reset-password-user-id').value = userId;
+  document.getElementById('new-password').value = '';
+  document.getElementById('confirm-new-password').value = '';
+  document.getElementById('reset-password-modal').style.display = 'block';
+}
+
+function resetUserPassword(event) {
+  event.preventDefault();
+  
+  const userId = document.getElementById('reset-password-user-id').value;
+  const newPassword = document.getElementById('new-password').value;
+  const confirmPassword = document.getElementById('confirm-new-password').value;
+  
+  if (newPassword !== confirmPassword) {
+    alert('Passwords do not match!');
+    return;
+  }
+  
+  fetch(`/api/users/${userId}/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ newPassword })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      closeAllModals();
+      alert('Password reset successfully!');
+    } else {
+      alert('Error: ' + (data.message || 'Failed to reset password'));
+    }
+  })
+  .catch(error => {
+    console.error('Error resetting password:', error);
+    alert('Error resetting password. Please try again later.');
+  });
+}
+
+function confirmDeleteUser(userId) {
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  
+  overlay.innerHTML = `
+    <div class="confirm-dialog">
+      <h3>Delete User</h3>
+      <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+      <p><strong>Note:</strong> Users with active loans cannot be deleted.</p>
+      <div class="confirm-actions">
+        <button class="cancel" onclick="document.querySelector('.confirm-overlay').remove()">Cancel</button>
+        <button class="danger" onclick="deleteUser(${userId})">Delete</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+}
+
+function deleteUser(userId) {
+  fetch(`/api/users/${userId}`, {
+    method: 'DELETE'
+  })
+  .then(response => response.json())
+  .then(data => {
+    document.querySelector('.confirm-overlay').remove();
+    
+    if (data.success) {
+      loadUsers();
+      alert('User deleted successfully!');
+    } else {
+      alert('Error: ' + (data.message || 'Failed to delete user'));
+    }
+  })
+  .catch(error => {
+    console.error('Error deleting user:', error);
+    alert('Error deleting user. Please try again later.');
+    document.querySelector('.confirm-overlay').remove();
+  });
+}
+
+function closeAllModals() {
+  const modals = document.querySelectorAll('.modal');
+  modals.forEach(modal => {
+    modal.style.display = 'none';
   });
 }

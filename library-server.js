@@ -392,6 +392,118 @@ app.get('/api/loans', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/users', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      'SELECT user_id, name, email, role FROM users ORDER BY user_id'
+    );
+    
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.get('/api/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      'SELECT user_id, name, email, role FROM users WHERE user_id = ?',
+      [req.params.id]
+    );
+    
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    res.json({ success: true, user: users[0] });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+  const { name, email, role } = req.body;
+  
+  try {
+    if (email) {
+      const [existingUsers] = await pool.query(
+        'SELECT * FROM users WHERE email = ? AND user_id != ?',
+        [email, req.params.id]
+      );
+      
+      if (existingUsers.length > 0) {
+        return res.status(400).json({ success: false, message: 'Email already in use by another user' });
+      }
+    }
+    
+    await pool.query(
+      'UPDATE users SET name = ?, email = ?, role = ? WHERE user_id = ?',
+      [name, email, role, req.params.id]
+    );
+    
+    res.json({ success: true, message: 'User updated successfully' });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.delete('/api/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    if (parseInt(req.params.id) === req.session.userId) {
+      return res.status(400).json({ success: false, message: 'Cannot delete your own account' });
+    }
+    
+    const [activeLoans] = await pool.query(
+      'SELECT * FROM loans WHERE user_id = ? AND return_date IS NULL',
+      [req.params.id]
+    );
+    
+    if (activeLoans.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Cannot delete user with active loans. User must return all books first.'
+      });
+    }
+    
+    await pool.query('DELETE FROM loans WHERE user_id = ?', [req.params.id]);
+    
+    await pool.query('DELETE FROM users WHERE user_id = ?', [req.params.id]);
+    
+    res.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.post('/api/users/:id/reset-password', isAuthenticated, isAdmin, async (req, res) => {
+  const { newPassword } = req.body;
+  
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'New password must be at least 6 characters long' 
+    });
+  }
+  
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await pool.query(
+      'UPDATE users SET password = ? WHERE user_id = ?',
+      [hashedPassword, req.params.id]
+    );
+    
+    res.json({ success: true, message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
